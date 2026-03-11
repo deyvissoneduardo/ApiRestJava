@@ -1,86 +1,89 @@
-# code-with-quarkus
+# ApiRestJava - CRUD de Usuário com JWT
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+API REST construída com Quarkus contendo CRUD completo de usuário e autenticação JWT.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Arquitetura do Projeto
 
-## Running the application in dev mode
+O projeto segue arquitetura em camadas com separação clara de responsabilidades:
 
-You can run your application in dev mode that enables live coding using:
+```
+org.apirest/
+├── config/          - Configurações (JWT, beans)
+├── core/            - Constantes, utilitários, exceções base
+│   └── exception/   - Exceções e handler global
+├── controller/      - Endpoints REST
+├── domain/          - Entidades JPA e DTOs
+│   ├── entity/      - Entidades de domínio
+│   └── dto/         - Objetos de transferência
+├── interfaces/      - Contratos (repositórios, serviços)
+├── repositories/    - Implementação de acesso a dados
+└── services/        - Regras de negócio
+```
 
-```shell script
+## Padrões Utilizados
+
+- **Repository**: abstração do acesso a dados
+- **Service**: regras de negócio isoladas
+- **DTO**: separação entre modelo de domínio e API
+
+## Como Executar
+
+### 1. Subir o banco de dados
+
+```bash
+docker compose up -d
+```
+
+Isso sobe PostgreSQL na porta 5432 e pgAdmin na porta 5050.
+
+### 2. Executar a aplicação
+
+```bash
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+Aplicação disponível em `http://localhost:8080`
 
-## Packaging and running the application
+## Endpoints Disponíveis
 
-The application can be packaged using:
+| Método | Endpoint | Autenticação | Descrição |
+|--------|----------|--------------|-----------|
+| POST | /api/users | Não | Criar usuário |
+| GET | /api/users | Sim (JWT) | Listar todos os usuários |
+| GET | /api/users/{id} | Sim (JWT) | Buscar usuário por ID |
+| PUT | /api/users/{id} | Sim (JWT) | Atualizar usuário |
+| DELETE | /api/users/{id} | Sim (JWT) | Excluir usuário |
+| POST | /api/auth/login | Não | Login e obter token JWT |
 
-```shell script
-./mvnw package
+### Exemplo de uso
+
+**Criar usuário:**
+```bash
+curl -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"name":"João Silva","email":"joao@email.com","password":"123456"}'
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+**Login:**
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"joao@email.com","password":"123456"}'
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
+**Acessar rota protegida (com token):**
+```bash
+curl -X GET http://localhost:8080/api/users \
+  -H "Authorization: Bearer SEU_TOKEN_JWT"
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+## Documentação Swagger
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
+Swagger UI disponível em: `http://localhost:8080/q/swagger-ui`
 
-You can then execute your native executable with: `./target/code-with-quarkus-1.0.0-SNAPSHOT-runner`
+## pgAdmin
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- Hibernate ORM ([guide](https://quarkus.io/guides/hibernate-orm)): Define your persistent model with Hibernate ORM and Jakarta Persistence
-- Flyway ([guide](https://quarkus.io/guides/flyway)): Handle your database schema migrations
-- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Validate object properties (field, getter) and method parameters for your beans (REST, CDI, Jakarta Persistence)
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- SmallRye Fault Tolerance ([guide](https://quarkus.io/guides/smallrye-fault-tolerance)): Build fault-tolerant network services
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- SmallRye JWT ([guide](https://quarkus.io/guides/security-jwt)): Secure your applications with JSON Web Token
-- SmallRye JWT Build ([guide](https://quarkus.io/guides/security-jwt-build)): Create JSON Web Token with SmallRye JWT Build API
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+- URL: http://localhost:5050
+- Email: admin@admin.com
+- Senha: admin
+- Conexão PostgreSQL: host=postgres, port=5432, db=apirest, user=postgres, password=postgres
